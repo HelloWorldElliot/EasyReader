@@ -1,0 +1,19 @@
+{
+  "name": "easyreader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "build": "rollup sidepanel/index.js --file dist/sidepanel.bundle.js --format iife"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "rollup": "^4.28.0"
+  }
+}
