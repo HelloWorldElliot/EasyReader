@@ -67,7 +67,6 @@ fieldset > * {
   overflow: auto; /* Allow scrolling if content exceeds max height/width */
   position: fixed; /* or 'absolute' depending on the use case */
   z-index: 999;
-  background-color: white;
   font: bold;
   right: 0; /* Align the panel to the right */
 }
