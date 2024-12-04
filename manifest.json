@@ -12,7 +12,7 @@
     "AkGcfoMTs5K71isPlCiY033XA9HKSjUJvPCF6K56eqY7mAUAsR7NDbmIWDjomLgCREuOS38XAuafVTz209utDwQAAABzeyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vamdrYm1sZmZlYWRtZWZqZmdrY2tmYnBja3Bvb2loY2UiLCJmZWF0dXJlIjoiQUlTdW1tYXJpemF0aW9uQVBJIiwiZXhwaXJ5IjoxNzUzMTQyNDAwfQ=="
   ],
   "host_permissions": ["http://*/*", "https://*/*"],
-  "permissions": ["tabs", "scripting", "sidePanel", "storage"],
+  "permissions": ["tabs", "scripting", "sidePanel", "storage", "contextMenus"],
   "side_panel": {
     "default_path": "sidepanel/index.html"
   },

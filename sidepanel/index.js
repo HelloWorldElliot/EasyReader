@@ -7,6 +7,11 @@ let pageContent = "";
 
 const summaryElement = document.body.querySelector("#summary");
 const languageSelect = document.querySelector("#language");
+const settingsTab = document.querySelector("#settings-tab");
+const settingsPanel = document.querySelector("#settings-panel");
+const settingsCard = document.querySelector("#card");
+const cardContainer = document.getElementById("card-container");
+
 function onConfigChange() {
   const oldContent = pageContent;
   pageContent = "";
@@ -22,6 +27,10 @@ chrome.storage.session.get("pageContent", ({ pageContent }) => {
 chrome.storage.session.onChanged.addListener((changes) => {
   const pageContent = changes["pageContent"];
   onContentChange(pageContent.newValue);
+  const cardContainer = document.getElementById("card-container");
+  if (cardContainer) {
+    cardContainer.innerHTML = ""; // Clear the cards inside the container
+  }
 });
 
 async function onContentChange(newContent) {
@@ -136,3 +145,53 @@ async function showSummary(text) {
 
   summaryElement.innerHTML = `<ul>${formattedText}</ul>`;
 }
+
+settingsTab.addEventListener("click", () => {
+  settingsTab.classList.toggle("change");
+  // settingsCard.classList.toggle("collapsed");
+  const isExpanded = settingsTab.getAttribute("aria-expanded") === "true";
+  if (isExpanded) {
+    settingsPanel.style.display = "none";
+    settingsTab.setAttribute("aria-expanded", "false");
+  } else {
+    settingsPanel.style.display = "block";
+    settingsTab.setAttribute("aria-expanded", "true");
+  }
+});
+
+// Function to create a new card
+function createNewCard(origtext, text) {
+  // Create a new div element with the class 'card'
+  const newCard = document.createElement("div");
+  newCard.classList.add("card");
+  // Create a span for the 'selected:' text with a different font
+  const selectedText = document.createElement("span");
+  selectedText.classList.add("selected-text");
+  selectedText.textContent = "selected: ";
+
+  // Create a div or text node for the rest of the content
+  const restText = document.createElement("span");
+  restText.classList.add("selected-text-2");
+  restText.textContent = " " + origtext;
+
+  const newLineText = document.createElement("div");
+  newLineText.textContent = "This is some additional text on a new line.";
+
+  // Append the selected text and the rest of the text to the card
+  newCard.appendChild(selectedText);
+  newCard.appendChild(restText);
+  newCard.appendChild(newLineText); // Add it to the card
+  cardContainer.appendChild(newCard);
+}
+
+// Listen for messages in the side panel (index.js)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "selectedTextFromBackground") {
+    const selectedText = message.text;
+    // console.log("Received selected text in side panel:", selectedText);
+
+    // Update your side panel here
+    // For example, show the text in a DOM element in the side panel
+    createNewCard(selectedText, selectedText);
+  }
+});

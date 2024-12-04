@@ -8,19 +8,29 @@
     <link rel="stylesheet" type="text/css" href="index.css" />
   </head>
   <body>
-    <div class="card">
-      <fieldset>
-        <legend>Settings</legend>
-        <div>
-          <label for="language">Language:</label>
-          <select id="language">
-            <option value="zh" selected>Simplified Chinese</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-      </fieldset>
+    <div class="setting container">
+      <button id="settings-tab" aria-expanded="false" class="settings-bar">
+        <div class="bar bar1"></div>
+        <div class="bar bar2"></div>
+        <div class="bar bar3"></div>
+      </button>
+      <div id="settings-panel" style="display: none" class="settings-panel">
+        <fieldset>
+          <legend>Settings</legend>
+          <div>
+            <label for="language">Language:</label>
+            <select id="language">
+              <option value="zh" selected>Simplified Chinese</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </fieldset>
+      </div>
     </div>
     <div class="card" id="summary">Nothing to show...</div>
+    <div id="card-container">
+      <!-- All new cards will be added here -->
+    </div>
     <script src="index.js" type="module"></script>
   </body>
 </html>

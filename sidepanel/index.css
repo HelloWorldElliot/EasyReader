@@ -30,6 +30,29 @@ fieldset > * {
 
 .card {
   flex-basis: var(--size-content-1);
+  top: 10%; /* Adjust to set it vertically where you want (e.g., 10% from the top) */
+  left: 0; /* Align it to the left of the screen */
+  background: var(--surface-3);
+  border: 1px solid var(--surface-1);
+  padding: var(--size-4);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2);
+  overflow-y: auto; /* Allow scrolling if the content exceeds the box height */
+  box-sizing: border-box; /* Include padding in the element's total width and height */
+  max-width: 400px; /* Set a maximum width (you can adjust this value) */
+  margin-bottom: 10px;
+}
+
+.card > h5 {
+  line-height: var(--font-lineheight-1);
+  margin-top: 0; /* Optionally remove the top margin */
+}
+
+.settings-panel {
+  flex-basis: var(--size-content-1);
   display: flex;
   flex-direction: column;
   gap: var(--size-2);
@@ -39,20 +62,68 @@ fieldset > * {
   border-radius: var(--radius-3);
   box-shadow: var(--shadow-2);
   margin-bottom: var(--size-2);
+  max-width: 400px; /* Set a maximum width (you can adjust this value) */
+  max-height: 500px; /* Set a maximum height (adjustable value) */
+  overflow: auto; /* Allow scrolling if content exceeds max height/width */
+  position: fixed; /* or 'absolute' depending on the use case */
+  z-index: 999;
+  background-color: white;
+  font: bold;
+  right: 0; /* Align the panel to the right */
 }
-
-.card > h5 {
-  line-height: var(--font-lineheight-1);
+.container {
+  text-align: right;
 }
-
 .warning {
   background-color: var(--red-6);
 }
-
+#type,
+#format,
+#length {
+  display: none;
+}
 .result {
   position: relative;
   background: #00aabb;
   border-radius: 0.4em;
   color: white;
   padding: 1em;
+}
+.selected-text {
+  font-family: "Arial", sans-serif; /* Example font for 'selected:' */
+  font-weight: bold; /* Make 'selected:' bold, optional */
+  color: #278bb3; /* Optional: change the color */
+}
+.selected-text-2 {
+  font-family: "Arial", sans-serif; /* Example font for 'selected:' */
+  font-weight: bold; /* Make 'selected:' bold, optional */
+  color: #27b361; /* Optional: change the color */
+}
+.bar1,
+.bar2,
+.bar3 {
+  width: 35px;
+  height: 5px;
+  background-color: #333;
+  margin: 6px 0;
+  transition: 0.4s;
+}
+
+/* Rotate first bar */
+.change .bar1 {
+  transform: translate(0, 11px) rotate(-45deg);
+}
+
+/* Fade out the second bar */
+.change .bar2 {
+  opacity: 0;
+}
+/* Rotate last bar */
+.change .bar3 {
+  transform: translate(0, -11px) rotate(45deg);
+}
+.settings-bar {
+  display: inline-block;
+  cursor: pointer;
+  margin-bottom: 20px;
 }
