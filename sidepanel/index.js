@@ -148,6 +148,10 @@ async function showSummary(text) {
 
 settingsTab.addEventListener("click", () => {
   settingsTab.classList.toggle("change");
+  const tabRect = settingsTab.getBoundingClientRect();
+
+  // Position the panel to align with the tab
+  settingsPanel.style.top = `${tabRect.top + window.scrollY}px`;
   // settingsCard.classList.toggle("collapsed");
   const isExpanded = settingsTab.getAttribute("aria-expanded") === "true";
   if (isExpanded) {
