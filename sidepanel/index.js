@@ -175,7 +175,8 @@ function createNewCard(origtext, text) {
   restText.textContent = " " + origtext;
 
   const newLineText = document.createElement("div");
-  newLineText.textContent = "This is some additional text on a new line.";
+
+  newLineText.textContent = text;
 
   // Append the selected text and the rest of the text to the card
   newCard.appendChild(selectedText);
@@ -192,6 +193,75 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Update your side panel here
     // For example, show the text in a DOM element in the side panel
-    createNewCard(selectedText, selectedText);
+    (async () => {
+      try {
+        let prompt = "What does " + selectedText + " mean in the article.";
+        let replyText = await generateReply(prompt);
+        createNewCard(selectedText, replyText);
+        sendResponse({ status: "success", replyText }); // Send a response back if needed
+      } catch (error) {
+        console.error("Error generating reply:", error);
+        sendResponse({ status: "error", error: error.message });
+      }
+    })();
   }
 });
+
+//The following part is for Prompt API
+
+async function initDefaults() {
+  if (!("aiOriginTrial" in chrome)) {
+    console.log("Error: chrome.aiOriginTrial not supported in this browser");
+    return;
+  }
+  const defaults = await chrome.aiOriginTrial.languageModel.capabilities();
+  console.log("Model default:", defaults);
+  if (defaults.available !== "readily") {
+    showResponse(
+      `Model not yet available (current state: "${defaults.available}")`
+    );
+    return;
+  }
+}
+//Start the model
+initDefaults();
+
+let session;
+
+async function runPrompt(prompt, params) {
+  try {
+    if (!session) {
+      session = await chrome.aiOriginTrial.languageModel.create(params);
+    }
+    return session.prompt(prompt);
+  } catch (e) {
+    console.log("Prompt failed");
+    console.error(e);
+    console.log("Prompt:", prompt);
+    // Reset session
+    reset();
+    throw e;
+  }
+}
+
+async function reset() {
+  if (session) {
+    session.destroy();
+  }
+  session = null;
+}
+
+async function generateReply(prompt) {
+  //showLoading();
+  let title = document.title;
+  try {
+    const params = {
+      systemPrompt: "You are helping reader to understand article: " + title,
+    };
+    const response = await runPrompt(prompt, params);
+    console.log(response);
+    return response;
+  } catch (e) {
+    console.log(e);
+  }
+}
