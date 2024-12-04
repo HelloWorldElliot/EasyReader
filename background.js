@@ -17,15 +17,16 @@ async function showSummary(tabId) {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
-        // Function runs in the context of the page
-        return document.body.innerText || "";
+        const articleElement = document.querySelector("article");
+        return articleElement
+          ? articleElement.innerText.trim()
+          : "No <article> element found on this page.";
       },
     });
 
-    const contentText = result.result;
     // Save the extracted text in session storage
-    chrome.storage.session.set({ pageContent: contentText });
-    console.log("Extracted Text:", contentText); // For debugging
+    chrome.storage.session.set({ pageContent: result.result });
+    console.log("Extracted Text:", result.result); // For debugging
   } catch (error) {
     console.error("Failed to extract text:", error);
   }

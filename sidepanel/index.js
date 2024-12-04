@@ -6,24 +6,14 @@ const MAX_MODEL_CHARS = 4000;
 let pageContent = "";
 
 const summaryElement = document.body.querySelector("#summary");
-const warningElement = document.body.querySelector("#warning");
-const summaryTypeSelect = document.querySelector("#type");
-const summaryFormatSelect = document.querySelector("#format");
-const summaryLengthSelect = document.querySelector("#length");
 const languageSelect = document.querySelector("#language");
-
 function onConfigChange() {
   const oldContent = pageContent;
   pageContent = "";
   onContentChange(oldContent);
 }
 
-[
-  summaryTypeSelect,
-  summaryFormatSelect,
-  summaryLengthSelect,
-  languageSelect,
-].forEach((e) => e.addEventListener("change", onConfigChange));
+[languageSelect].forEach((e) => e.addEventListener("change", onConfigChange));
 
 chrome.storage.session.get("pageContent", ({ pageContent }) => {
   onContentChange(pageContent);
@@ -42,32 +32,36 @@ async function onContentChange(newContent) {
   pageContent = newContent;
   let summary;
   if (newContent) {
-    if (newContent.length > MAX_MODEL_CHARS) {
-      updateWarning(
-        `Text is too long for summarization with ${newContent.length} characters (maximum supported content length is ~4000 characters).`
-      );
-    } else {
-      updateWarning("");
-    }
     showSummary("Loading...");
     summary = await generateSummary(newContent);
   } else {
     summary = "There's nothing to summarize";
   }
   if (languageSelect.value !== "en") {
-    let translator;
-    translator = await createTranslator("en", "zh");
-    summary = await translator.translate(summary);
+    try {
+      summary = await translateText(summary, languageSelect.value);
+    } catch (error) {
+      console.error("Error during translation:", error);
+    }
   }
   console.log(summary);
   showSummary(summary);
 }
+async function translateText(sourceContent, targetLanguage) {
+  try {
+    const translator = await createTranslator("en", targetLanguage);
+    return await translator.translate(sourceContent);
+  } catch (error) {
+    console.error("Translation failed:", error);
+    return "Translation error: Unable to process the text.";
+  }
+}
 async function createTranslator(sourceLanguage, targetLanguage) {
-  if (!window.translation) {
+  if (!self.translation) {
     console.log("No translation model");
     throw new Error("AI Translation is not supported in this browser");
   }
-  const translator = await window.translation.createTranslator({
+  const translator = await self.translation.createTranslator({
     sourceLanguage,
     targetLanguage,
   });
@@ -77,17 +71,32 @@ async function generateSummary(text) {
   try {
     const session = await createSummarizer(
       {
-        type: summaryTypeSelect.value,
-        format: summaryFormatSelect.value,
-        length: length.value,
+        type: "key-points",
+        format: "markdown",
+        length: "short",
       },
       (message, progress) => {
         console.log(`${message} (${progress.loaded}/${progress.total})`);
       }
     );
-    const summary = await session.summarize(text);
+    const chunks = [];
+    let startIndex = 0;
+    while (startIndex < text.length) {
+      const chunk = text.slice(startIndex, startIndex + MAX_MODEL_CHARS);
+      chunks.push(chunk);
+      startIndex += MAX_MODEL_CHARS;
+    }
+    let finalSummary = "";
+    for (let i = 0; i < chunks.length; i++) {
+      const chunkSummary = await session.summarize(chunks[i]);
+      finalSummary += chunkSummary + "\n";
+    }
+    finalSummary.trim();
+    // const summary = await session.summarize(text, {
+    //   context: "This is a news article.",
+    // });
     session.destroy();
-    return summary;
+    return finalSummary;
   } catch (e) {
     console.log("Summary generation failed");
     console.error(e);
@@ -96,10 +105,10 @@ async function generateSummary(text) {
 }
 
 async function createSummarizer(config, downloadProgressCallback) {
-  if (!window.ai || !window.ai.summarizer) {
+  if (!"ai" in self || !"summarizer" in self.ai) {
     throw new Error("AI Summarization is not supported in this browser");
   }
-  const canSummarize = await window.ai.summarizer.capabilities();
+  const canSummarize = await self.ai.summarizer.capabilities();
   if (canSummarize.available === "no") {
     throw new Error("AI Summarization is not supported");
   }
@@ -118,14 +127,12 @@ async function createSummarizer(config, downloadProgressCallback) {
 }
 
 async function showSummary(text) {
-  summaryElement.innerHTML = text;
-}
+  //summaryElement.innerHTML = text;
+  const formattedText = text
+    .split("*")
+    .filter((line) => line.trim() !== "") // Remove empty lines
+    .map((line) => `<li>${line.trim()}</li>`) // Wrap each line in a list item
+    .join("");
 
-async function updateWarning(warning) {
-  warningElement.textContent = warning;
-  if (warning) {
-    warningElement.removeAttribute("hidden");
-  } else {
-    warningElement.setAttribute("hidden", "");
-  }
+  summaryElement.innerHTML = `<ul>${formattedText}</ul>`;
 }
