@@ -43,10 +43,6 @@ chrome.runtime.onInstalled.addListener(() => {
 // Add a listener for when the context menu item is clicked
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "highlightedTextAction") {
-    chrome.sidePanel.setOptions({
-      path: "sidepanel/index.html",
-      enabled: true,
-    });
     const selectedText = info.selectionText;
     if (selectedText) {
       console.log("Selected Text (from context menu):", selectedText);
