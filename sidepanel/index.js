@@ -1,6 +1,3 @@
-// The underlying model has a context of 1,024 tokens, out of which 26 are used by the internal prompt,
-// leaving about 998 tokens for the input text. Each token corresponds, roughly, to about 4 characters, so 4,000
-// is used as a limit to warn the user the content might be too long to summarize.
 const MAX_MODEL_CHARS = 4000;
 
 let pageContent = "";
@@ -53,7 +50,6 @@ async function onContentChange(newContent) {
       console.error("Error during translation:", error);
     }
   }
-  console.log(summary);
   showSummary(summary);
 }
 async function translateText(sourceContent, targetLanguage) {
@@ -142,7 +138,6 @@ async function showSummary(text) {
     .filter((line) => line.trim() !== "") // Remove empty lines
     .map((line) => `<li>${line.trim()}</li>`) // Wrap each line in a list item
     .join("");
-
   summaryElement.innerHTML = `<ul>${formattedText}</ul>`;
 }
 
@@ -174,15 +169,40 @@ function createNewCard(origtext, text) {
   restText.classList.add("selected-text-2");
   restText.textContent = " " + origtext;
 
-  const newLineText = document.createElement("div");
-
-  newLineText.textContent = text;
+  const newLineText = formatText(text);
 
   // Append the selected text and the rest of the text to the card
   newCard.appendChild(selectedText);
   newCard.appendChild(restText);
   newCard.appendChild(newLineText); // Add it to the card
   cardContainer.appendChild(newCard);
+}
+function formatText(text) {
+  const container = document.createElement("div");
+  container.style.fontFamily = "Arial, sans-serif";
+  container.style.lineHeight = "1.6";
+
+  const lines = text.split("\n");
+  lines.forEach((line) => {
+    if (line.startsWith("*")) {
+      // Handle list items
+      const ul = container.querySelector("ul") || document.createElement("ul");
+      if (!ul.parentNode) container.appendChild(ul);
+
+      const li = document.createElement("li");
+      li.innerHTML = line
+        .slice(1) // Remove the "*"
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"); // Bold text
+      ul.appendChild(li);
+    } else {
+      // Handle paragraphs
+      const p = document.createElement("p");
+      p.innerHTML = line.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"); // Bold text
+      container.appendChild(p);
+    }
+  });
+
+  return container;
 }
 
 // Listen for messages in the side panel (index.js)
@@ -197,6 +217,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         let prompt = "What does " + selectedText + " mean in the article.";
         let replyText = await generateReply(prompt);
+        if (languageSelect.value !== "en") {
+          replyText = await translateText(replyText, languageSelect.value);
+        }
         createNewCard(selectedText, replyText);
         sendResponse({ status: "success", replyText }); // Send a response back if needed
       } catch (error) {
@@ -256,7 +279,8 @@ async function generateReply(prompt) {
   let title = document.title;
   try {
     const params = {
-      systemPrompt: "You are helping reader to understand article: " + title,
+      systemPrompt:
+        "You are helping reader to understand article: " + pageContent,
     };
     const response = await runPrompt(prompt, params);
     console.log(response);
