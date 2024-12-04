@@ -35,7 +35,7 @@ async function showSummary(tabId) {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "highlightedTextAction",
-    title: "Do something with the highlighted text",
+    title: "Analyze with EasyReader",
     contexts: ["selection"], // This ensures it only shows when text is selected
   });
 });
@@ -43,25 +43,18 @@ chrome.runtime.onInstalled.addListener(() => {
 // Add a listener for when the context menu item is clicked
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "highlightedTextAction") {
+    chrome.sidePanel.setOptions({
+      path: "sidepanel/index.html",
+      enabled: true,
+    });
     const selectedText = info.selectionText;
     if (selectedText) {
       console.log("Selected Text (from context menu):", selectedText);
       // You can process the selected text here or send it to the background script
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["scripts/content.js"], // Path to your content.js
+      chrome.runtime.sendMessage({
+        type: "selectedTextFromBackground",
+        text: selectedText,
       });
     }
-  }
-});
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "selectedText") {
-    const selectedText = message.text;
-    console.log("Received selected text:", selectedText);
-    // Do something with the selected text here
-    chrome.runtime.sendMessage({
-      type: "selectedTextFromBackground",
-      text: selectedText,
-    });
   }
 });

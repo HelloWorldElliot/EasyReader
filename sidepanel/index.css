@@ -30,7 +30,7 @@ fieldset > * {
 
 .card {
   flex-basis: var(--size-content-1);
-  top: 10%; /* Adjust to set it vertically where you want (e.g., 10% from the top) */
+  top: 10%;
   left: 0; /* Align it to the left of the screen */
   background: var(--surface-3);
   border: 1px solid var(--surface-1);
